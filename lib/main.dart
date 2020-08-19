@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.teal,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'PicsTagrapham'),
+      home: MyHomePage(title: 'Picstagram'),
     );
   }
 }
@@ -56,6 +56,14 @@ class Data {
       'liked': false,
       'bookmarked': true
     },
+    {
+      'name': 'Joe Megail',
+      'image': 'https://picsum.photos/id/999/400/500',
+      'icon': 'https://randomuser.me/api/portraits/lego/0.jpg',
+      'likes': 7,
+      'liked': true,
+      'bookmarked': true
+    },
   ];
 }
 
@@ -64,6 +72,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<bool> _bookmarked = [];
   List<bool> _likes = [];
+
+  void toggleLiked(index) {
+    _likes[index] = !_likes[index];
+  }
+
+  void toggleBookmarked(index) {
+    _bookmarked[index] = !_bookmarked[index];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,15 +99,14 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: ListView.builder(
+      body: ListView.separated(
+        separatorBuilder: (context, index) => Divider(
+          color: Colors.black,
+        ),
         padding: const EdgeInsets.all(5),
         itemCount: data.length,
         itemBuilder: (context, index) {
-          return Container(
-            child: Column(
-              children: [_cardComponent(data, index)],
-            ),
-          );
+          return Container(child: _cardComponent(data, index));
         },
       ),
     );
@@ -102,72 +117,68 @@ class _MyHomePageState extends State<MyHomePage> {
       _bookmarked.add(data[index]['bookmarked']);
       _likes.add(data[index]['liked']);
     }
-    return Padding(
-        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-        child: Column(
-          children: [
-            Column(
-              children: [
-                _cardTop(data[index]),
-                GestureDetector(
-                  child: Container(
-                    height: 400,
-                    decoration: new BoxDecoration(
-                        image: new DecorationImage(
-                            fit: BoxFit.fill,
-                            image:
-                                NetworkImage(data[index]['image'].toString()))),
-                  ),
-                  onDoubleTap: () {
-                    print("you clicked on me");
-                  },
-                ),
-                _cardBottom(data[index], index),
-              ],
-            ),
-          ],
-        ));
+    return Column(
+      children: [
+        _cardTop(data[index]),
+        GestureDetector(
+          child: Container(
+            height: 400,
+            decoration: new BoxDecoration(
+                image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image:
+                    NetworkImage(data[index]['image'].toString()))),
+          ),
+          onDoubleTap: () {
+            print("you clicked on me");
+            setState(() {
+              toggleLiked(index);
+            });
+          },
+          onLongPress: () {
+            setState(() {
+              toggleBookmarked(index);
+            });
+          },
+        ),
+        _cardBottom(index),
+      ],
+    );
   }
 
   Widget _cardTop(data) {
-    return Center(
-      child: Container(
-        child: ListTile(
-          leading: Container(
-            width: 50.0,
-            height: 50.0,
-            decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                    fit: BoxFit.fill,
-                    image: NetworkImage(data['icon'].toString()))),
-          ),
-          title: Text(data['name'].toString(),
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          trailing: Icon(Icons.more_horiz),
+    return Container(
+      child: ListTile(
+        leading: Container(
+          width: 50.0,
+          height: 50.0,
+          decoration: new BoxDecoration(
+              shape: BoxShape.circle,
+              image: new DecorationImage(
+                  fit: BoxFit.fill,
+                  image: NetworkImage(data['icon'].toString()))),
         ),
+        title: Text(data['name'].toString(),
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        trailing: Icon(Icons.more_horiz),
       ),
     );
   }
 
-  Widget _cardBottom(data, index) {
-    return Center(
-        child: Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 5),
-      child: Container(
-          child: Row(
-        children: [
-          IconButton(
-            icon: (!_likes[index]
-                ? Icon(Icons.favorite_border)
-                : Icon(
-                    Icons.favorite,
-                    color: Colors.red,
-                  )),
-            tooltip: 'tell someone you liked their photo',
-            onPressed: () {
+  Widget _cardBottom(index) {
+    return Row(
+      children: [
+        IconButton(
+          icon: (!_likes[index]
+              ? Icon(Icons.favorite_border)
+              : Icon(
+            Icons.favorite,
+            color: Colors.red,
+          )),
+          tooltip: 'tell someone you liked their photo',
+          onPressed: () {
               setState(() {
-                _likes[index] = !_likes[index];
+                toggleLiked(index);
               });
             },
           ),
@@ -187,17 +198,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       : Icon(
                           Icons.bookmark,
                           color: Colors.yellow,
-                        )),
+                  )),
                   tooltip: 'Bookmark this image',
                   onPressed: () {
                     setState(() {
-                      _bookmarked[index] = !_bookmarked[index];
+                      toggleBookmarked(index);
                     });
                   },
                 )),
           )
-        ],
-      )),
-    ));
+      ],
+    );
   }
 }
